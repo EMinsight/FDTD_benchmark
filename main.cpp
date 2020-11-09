@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <cmath>
+#include <fstream>
 #include <mpi.h>
 
 #include "fdtd3d.h"
@@ -16,6 +17,12 @@ int main( int argc, char** argv ){
     int name_length = 256;
     char* name = new char[name_length];
     MPI::Get_processor_name( name, name_length );
+
+    std::ofstream ofs;
+
+    if(rank == 0){
+      ofs.open("./time_file/elapsed_time.dat");
+    }
 
     int* start_idx = new int[size];
     int* end_idx = new int[size];
@@ -49,7 +56,7 @@ int main( int argc, char** argv ){
     }
 
     /* Magnitude */
-    double **Magnitude = memory_allocate2d( Num_Individual, Num_obs + 1, 0.0 );
+    double *Magnitude = new double[Num_obs + 1];
 
     std::cout << name << " rank : " << rank << std::endl;
 
@@ -66,9 +73,22 @@ int main( int argc, char** argv ){
 
     time_1 = MPI::Wtime();
 
+    if( rank == 0 ) ofs << size << " " << time_1 - time_0 << std::endl;
+
     MPI::Finalize();
 
     std::cout << " Erapsed times : " << time_1 - time_0 << std::endl;
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+

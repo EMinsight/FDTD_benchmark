@@ -178,9 +178,9 @@ void fdtd_calc(perturbation P_info, date ymd, geocoordinate lla_info,
     NEW = n%2;
     OLD = (n + 1)%2;
     
-    // if(myrank == 0 && n % 100 == 0){
-    //  std::cout << "\r" << gen << "generation." << n << " / " << time_step << "  Er(50, 50, 500) : " << Er[NEW][50][50][500] << std::endl;
-    //  }
+    if(myrank == 0 && n % 100 == 0){
+    std::cout << "\r" << gen << "generation." << n << " / " << time_step << "  Er(50, 50, 500) : " << Er[NEW][50][50][500] << std::endl;
+    }
     
       //t = (double(n) - 0.5)*Dt;
     t = n*Dt;
