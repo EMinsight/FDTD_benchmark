@@ -21,7 +21,7 @@ int main( int argc, char** argv ){
     std::ofstream ofs;
 
     if(rank == 0){
-      ofs.open("./time_file/elapsed_time.dat");
+      ofs.open("./time_file/elapsed_time_multi_node.dat");
     }
 
     int* start_idx = new int[size];
@@ -66,7 +66,7 @@ int main( int argc, char** argv ){
     for( int i = start_idx[rank]; i < end_idx[rank]; i++ ){
 
         fdtd_calc(P_info, ymd, lla_info, Num_obs, obs_p, Magnitude, rank, 0);
-
+        MPI::COMM_WORLD.Barrier();
     }
 
     MPI::COMM_WORLD.Barrier();
