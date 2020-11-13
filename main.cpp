@@ -56,17 +56,18 @@ int main( int argc, char** argv ){
 
     /* Observation Points on propagation path */
     int Num_obs = ( Nphi - 2*L ) - k_s;
-    geocoordinate* obs_p = new geocoordinate[Num_obs + 1];
-    for( int k = 0; k <= Num_obs; k++ ){
+
+    geocoordinate* obs_p = new geocoordinate[Num_obs];
+    for( int k = 0; k < Num_obs; k++ ){
         obs_p[k].set_obs( 0, 50, k + k_s );
     }
 
     /* Magnitude */
     double **Magnitude;
-    Magnitude = new double* [assigned_num];
-    for(int i = 0; i < assigned_num; i++ ){
-      Magnitude[i] = new double [Num_obs + 1];
-      for(int j = 0; j <= Num_obs; j++ ){
+    Magnitude = new double* [size];
+    for(int i = 0; i < size; i++ ){
+      Magnitude[i] = new double [Num_obs];
+      for(int j = 0; j < Num_obs; j++ ){
         Magnitude[i][j] = 0.0;
       }
     }
@@ -76,7 +77,7 @@ int main( int argc, char** argv ){
     time_0 = MPI::Wtime();
 
     for( int i = start_idx[rank]; i < end_idx[rank]; i++ ){
-        fdtd_calc(P_info, ymd, lla_info, Num_obs, obs_p, Magnitude[i], rank, 0);
+        fdtd_calc( P_info, ymd, lla_info, Num_obs, obs_p, Magnitude[i] );
     }
 
     time_1 = MPI::Wtime();
