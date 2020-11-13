@@ -19,9 +19,15 @@ int main( int argc, char** argv ){
     MPI::Get_processor_name( name, name_length );
 
     std::ofstream ofs;
+    std::ofstream ofs_mag1;
+    std::ofstream ofs_mag2;
+    std::ofstream ofs_mag3;
 
     if(rank == 0){
-      ofs.open("./time_file/elapsed_time_multi_node.dat");
+      ofs.open("./result/elapsed_time_multi_node.dat");
+      ofs_mag1.open("./result/magnitude_1.dat");
+      ofs_mag2.open("./result/magnitude_2.dat");
+      ofs_mag3.open("./result/magnitude_3.dat");
     }
 
     int* start_idx = new int[size];
@@ -36,7 +42,7 @@ int main( int argc, char** argv ){
     /* Set Perturbation Infomation */
     perturbation P_info;
     P_info.set_alpha( 10.0 );
-    P_info.set_center( 74, 25, Nphi/2 );
+    P_info.set_center( 74, 25, Nphi/2 + rank*2);
     P_info.set_sigma( 2.0e3, 30.0e3 );
 
     /* Set Y(Year)M(Month)D(Date) */
@@ -56,31 +62,63 @@ int main( int argc, char** argv ){
     }
 
     /* Magnitude */
-    double *Magnitude = new double[Num_obs + 1];
+    double **Magnitude;
+    Magnitude = new double* [assigned_num];
+    for(int i = 0; i < assigned_num; i++ ){
+      Magnitude[i] = new double [Num_obs];
+      for(int j = 0; j <= Num_obs; j++ ){
+        Magnitude[i][j] = 0.0;
+      }
+    }
 
     std::cout << name << " rank : " << rank << std::endl;
 
-    MPI::COMM_WORLD.Barrier();
     time_0 = MPI::Wtime();
 
     for( int i = start_idx[rank]; i < end_idx[rank]; i++ ){
-
-        fdtd_calc(P_info, ymd, lla_info, Num_obs, obs_p, Magnitude, rank, 0);
-        MPI::COMM_WORLD.Barrier();
+        fdtd_calc(P_info, ymd, lla_info, Num_obs, obs_p, Magnitude[i], rank, 0);
     }
-
-    MPI::COMM_WORLD.Barrier();
 
     time_1 = MPI::Wtime();
 
-    if( rank == 0 ) ofs << size << " " << time_1 - time_0 << std::endl;
+    if( rank == 0 ) {
+      ofs << size << " " << time_1 - time_0 << std::endl;
+    }
+
+    if( rank == 0 ){
+      for( int i = 0; i <= Num_obs; i++ ) ofs_mag1 << i << " " << Magnitude[0][i] << std::endl;
+    }
+
+    if( rank == 1 ){
+      for( int i = 0; i <= Num_obs; i++ ) ofs_mag2 << i << " " << Magnitude[0][i] << std::endl;
+    }
+
+    if( rank == 2 ){
+      for( int i = 0; i <= Num_obs; i++ ) ofs_mag3 << i << " " << Magnitude[0][i] << std::endl;
+    }
 
     MPI::Finalize();
 
     std::cout << " Erapsed times : " << time_1 - time_0 << std::endl;
 
+    ofs.close();
+    ofs_mag1.close();
+    ofs_mag2.close();
+    ofs_mag3.close();
+
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
