@@ -65,7 +65,7 @@ int main( int argc, char** argv ){
     double **Magnitude;
     Magnitude = new double* [assigned_num];
     for(int i = 0; i < assigned_num; i++ ){
-      Magnitude[i] = new double [Num_obs];
+      Magnitude[i] = new double [Num_obs + 1];
       for(int j = 0; j <= Num_obs; j++ ){
         Magnitude[i][j] = 0.0;
       }
