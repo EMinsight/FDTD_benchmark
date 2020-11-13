@@ -19,15 +19,15 @@ int main( int argc, char** argv ){
     MPI::Get_processor_name( name, name_length );
 
     std::ofstream ofs;
-    std::ofstream ofs_mag1;
-    std::ofstream ofs_mag2;
     std::ofstream ofs_mag3;
+    std::ofstream ofs_mag4;
+    std::ofstream ofs_mag5;
 
     if(rank == 0){
       ofs.open("./result/elapsed_time_multi_node.dat");
-      ofs_mag1.open("./result/magnitude_1.dat");
-      ofs_mag2.open("./result/magnitude_2.dat");
       ofs_mag3.open("./result/magnitude_3.dat");
+      ofs_mag4.open("./result/magnitude_4.dat");
+      ofs_mag5.open("./result/magnitude_5.dat");
     }
 
     int* start_idx = new int[size];
@@ -55,17 +55,17 @@ int main( int argc, char** argv ){
     lla_info.set_point( 32.0, 135.0, (Alt_lower_ionosphere/1.0e3) );
 
     /* Observation Points on propagation path */
-    int Num_obs = ( Nphi - 2*L ) - k_s;
+    int Num_obs = ( Nphi - 2*L ) - k_s + 1;
 
-    geocoordinate* obs_p = new geocoordinate[Num_obs];
+    geocoordinate *obs_p = new geocoordinate[Num_obs];
     for( int k = 0; k < Num_obs; k++ ){
         obs_p[k].set_obs( 0, 50, k + k_s );
     }
 
     /* Magnitude */
     double **Magnitude;
-    Magnitude = new double* [size];
-    for(int i = 0; i < size; i++ ){
+    Magnitude = new double* [Num_Individual];
+    for(int i = 0; i < Num_Individual; i++ ){
       Magnitude[i] = new double [Num_obs];
       for(int j = 0; j < Num_obs; j++ ){
         Magnitude[i][j] = 0.0;
@@ -77,25 +77,22 @@ int main( int argc, char** argv ){
     time_0 = MPI::Wtime();
 
     for( int i = start_idx[rank]; i < end_idx[rank]; i++ ){
-        fdtd_calc( P_info, ymd, lla_info, Num_obs, obs_p, Magnitude[i] );
+      fdtd_calc( P_info, ymd, lla_info, Num_obs, obs_p, Magnitude[i] );
     }
 
     time_1 = MPI::Wtime();
 
-    if( rank == 0 ) {
+    if( rank == 2 ) {
       ofs << size << " " << time_1 - time_0 << std::endl;
+      for( int i = 0; i < Num_obs; i++ ) ofs_mag3 << i << " " << Magnitude[0][i] << std::endl;
     }
 
-    if( rank == 0 ){
-      for( int i = 0; i <= Num_obs; i++ ) ofs_mag1 << i << " " << Magnitude[0][i] << std::endl;
+    if( rank == 3 ){
+      for( int i = 0; i < Num_obs; i++ ) ofs_mag4 << i << " " << Magnitude[0][i] << std::endl;
     }
 
-    if( rank == 1 ){
-      for( int i = 0; i <= Num_obs; i++ ) ofs_mag2 << i << " " << Magnitude[0][i] << std::endl;
-    }
-
-    if( rank == 2 ){
-      for( int i = 0; i <= Num_obs; i++ ) ofs_mag3 << i << " " << Magnitude[0][i] << std::endl;
+    if( rank == 4 ){
+      for( int i = 0; i < Num_obs; i++ ) ofs_mag5 << i << " " << Magnitude[0][i] << std::endl;
     }
 
     MPI::Finalize();
@@ -103,9 +100,9 @@ int main( int argc, char** argv ){
     std::cout << " Erapsed times : " << time_1 - time_0 << std::endl;
 
     ofs.close();
-    ofs_mag1.close();
-    ofs_mag2.close();
     ofs_mag3.close();
+    ofs_mag4.close();
+    ofs_mag5.close();
 
     return 0;
 }
