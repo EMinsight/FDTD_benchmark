@@ -47,7 +47,7 @@ int main( int argc, char** argv ){
 
     /* Set Y(Year)M(Month)D(Date) */
     date ymd;
-    ymd.set_ymd(2016, 3, 1);
+    ymd.set_ymd( 2016, 3, 1 );
     ymd.set_h( 9.0 );
 
     /* Set geocoordinate points */
