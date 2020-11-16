@@ -94,7 +94,7 @@ int main( int argc, char** argv ){
     else{
       for( int i = 1; i < size; i++ ){
         MPI::COMM_WORLD.Recv( Magnitude[start_idx[i]], Num_obs*assigned_num,
-                          MPI:DOUBLE, i, 0);
+                          MPI::DOUBLE, i, 0);
       }
     }
 
