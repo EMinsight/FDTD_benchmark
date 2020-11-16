@@ -86,13 +86,25 @@ int main( int argc, char** argv ){
 
     time_1 = MPI::Wtime();
 
+    /* 全プロセッサと結果の共有 */
+    if( rank != 0 ){
+      MPI::COMM_WORLD.Send( Magnitude[start_idx[rank]], Num_obs*assigned_num, 
+                          MPI::DOUBLE, 0, 0);
+    }
+    else{
+      for( int i = 1; i < size; i++ ){
+        MPI::COMM_WORLD.Recv( Magnitude[start_idx[i]], Num_obs*assigned_num,
+                          MPI:DOUBLE, i, 0);
+      }
+    }
+
     if( rank == 0 ){
       ofs << time_1 - time_0 << std::endl;
 
       for( int i = 0; i < Num_obs; i++ ){
         ofs_mag1 << i << " " << Magnitude[0][i] << std::endl;
-        ofs_mag2 << i << " " << Magnitude[1][i] << std::endl;
-        ofs_mag3 << i << " " << Magnitude[3][i] << std::endl;
+        ofs_mag2 << i << " " << Magnitude[3][i] << std::endl;
+        ofs_mag3 << i << " " << Magnitude[5][i] << std::endl;
 
       }
       std::cout << " Elapsed time : " << time_1 - time_0 << std::endl;
