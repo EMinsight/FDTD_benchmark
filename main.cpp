@@ -19,19 +19,21 @@ int main( int argc, char** argv ){
     MPI::Get_processor_name( name, name_length );
 
     std::ofstream ofs;
+    std::ofstream ofs_mag1;
+    std::ofstream ofs_mag2;
     std::ofstream ofs_mag3;
-    std::ofstream ofs_mag4;
-    std::ofstream ofs_mag5;
+    std::ofstream ofs_mag_all;
 
     if(rank == 0){
-      ofs.open("./result/elapsed_time_multi_node.dat");
+      ofs.open("./result/time.dat");
+      ofs_mag1.open("./result/magnitude_1.dat");
+      ofs_mag2.open("./result/magnitude_2.dat");
       ofs_mag3.open("./result/magnitude_3.dat");
-      ofs_mag4.open("./result/magnitude_4.dat");
-      ofs_mag5.open("./result/magnitude_5.dat");
     }
 
     int* start_idx = new int[size];
     int* end_idx = new int[size];
+
     for(int myrank = 0; myrank < size; myrank++){
         start_idx[myrank] = myrank * assigned_num;
         end_idx[myrank] = (myrank + 1) * assigned_num;
@@ -40,10 +42,12 @@ int main( int argc, char** argv ){
     double time_0(0.0), time_1(0.0);
 
     /* Set Perturbation Infomation */
-    perturbation P_info;
-    P_info.set_alpha( 10.0 );
-    P_info.set_center( 74, 25, Nphi/2 + rank*2);
-    P_info.set_sigma( 2.0e3, 30.0e3 );
+    perturbation *P_info = new perturbation[Num_Individual];
+    for( int i = 0; i < Num_Individual; i++ ){
+      P_info[i].set_alpha( 10.0 );
+      P_info[i].set_center( 74.0, 25, Nphi/2 + i*2 );
+      P_info[i].set_sigma( 2.0e3, 30.0e3 );
+    }
 
     /* Set Y(Year)M(Month)D(Date) */
     date ymd;
@@ -65,6 +69,7 @@ int main( int argc, char** argv ){
     /* Magnitude */
     double **Magnitude;
     Magnitude = new double* [Num_Individual];
+
     for(int i = 0; i < Num_Individual; i++ ){
       Magnitude[i] = new double [Num_obs];
       for(int j = 0; j < Num_obs; j++ ){
@@ -72,37 +77,34 @@ int main( int argc, char** argv ){
       }
     }
 
-    std::cout << name << " rank : " << rank << std::endl;
-
     time_0 = MPI::Wtime();
 
     for( int i = start_idx[rank]; i < end_idx[rank]; i++ ){
-      fdtd_calc( P_info, ymd, lla_info, Num_obs, obs_p, Magnitude[i] );
+      fdtd_calc( P_info[i], ymd, lla_info, Num_obs, obs_p, Magnitude[i] );
+      std::cout << name << " : " << "Mag[" << i << "]" << "[10] = " << Magnitude[i][10] << std::endl;
     }
 
     time_1 = MPI::Wtime();
 
-    if( rank == 2 ) {
-      ofs << size << " " << time_1 - time_0 << std::endl;
-      for( int i = 0; i < Num_obs; i++ ) ofs_mag3 << i << " " << Magnitude[0][i] << std::endl;
-    }
+    if( rank == 0 ){
+      ofs << time_1 - time_0 << std::endl;
 
-    if( rank == 3 ){
-      for( int i = 0; i < Num_obs; i++ ) ofs_mag4 << i << " " << Magnitude[0][i] << std::endl;
-    }
+      for( int i = 0; i < Num_obs; i++ ){
+        ofs_mag1 << i << " " << Magnitude[0][i] << std::endl;
+        ofs_mag2 << i << " " << Magnitude[1][i] << std::endl;
+        ofs_mag3 << i << " " << Magnitude[3][i] << std::endl;
 
-    if( rank == 4 ){
-      for( int i = 0; i < Num_obs; i++ ) ofs_mag5 << i << " " << Magnitude[0][i] << std::endl;
+      }
+      std::cout << " Elapsed time : " << time_1 - time_0 << std::endl;
+
     }
 
     MPI::Finalize();
 
-    std::cout << " Erapsed times : " << time_1 - time_0 << std::endl;
-
     ofs.close();
+    ofs_mag1.close();
+    ofs_mag2.close();
     ofs_mag3.close();
-    ofs_mag4.close();
-    ofs_mag5.close();
 
     return 0;
 }
