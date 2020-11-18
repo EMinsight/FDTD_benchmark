@@ -13,10 +13,11 @@ int main( int argc, char** argv ){
     MPI::Init(argc, argv);
     const int rank = MPI::COMM_WORLD.Get_rank();
     const int size = MPI::COMM_WORLD.Get_size();
-    const int assigned_num = Num_Individual / size;
+    int assigned_num = Num_Individual / size;
     int name_length = 256;
     char* name = new char[name_length];
     MPI::Get_processor_name( name, name_length );
+    MPI::Status istatus;
 
     std::ofstream ofs;
     std::ofstream ofs_mag1;
@@ -86,15 +87,17 @@ int main( int argc, char** argv ){
 
     time_1 = MPI::Wtime();
 
+    std::cout << " calculation is completed. " << std::endl;
+
     /* 全プロセッサと結果の共有 */
     if( rank != 0 ){
-      MPI::COMM_WORLD.Send( Magnitude[start_idx[rank]], Num_obs*assigned_num, 
-                          MPI::DOUBLE, 0, 0);
+      MPI::COMM_WORLD.Send( Magnitude[start_idx[rank]], assigned_num*Num_obs, 
+                          MPI::DOUBLE, 0, 0 );
     }
     else{
       for( int i = 1; i < size; i++ ){
-        MPI::COMM_WORLD.Recv( Magnitude[start_idx[i]], Num_obs*assigned_num,
-                          MPI::DOUBLE, i, 0);
+        MPI::COMM_WORLD.Recv( Magnitude[start_idx[i]], assigned_num*Num_obs,
+                              MPI::DOUBLE, i, 0, istatus );
       }
     }
 
