@@ -90,7 +90,8 @@ int main( int argc, char** argv ){
     std::cout << " calculation is completed. " << std::endl;
 
     /* 全プロセッサと結果の共有 */
-    if( rank != 0 ){
+
+    /*if( rank != 0 ){
       MPI::COMM_WORLD.Send( Magnitude[start_idx[rank]], assigned_num*Num_obs, 
                           MPI::DOUBLE, 0, 0 );
     }
@@ -99,7 +100,16 @@ int main( int argc, char** argv ){
         MPI::COMM_WORLD.Recv( Magnitude[start_idx[i]], assigned_num*Num_obs,
                               MPI::DOUBLE, i, 0, istatus );
       }
+    }*/
+
+    if( rank != 0 ){
+      for( int i = 0; i < assigned_num; i++ ){
+        MPI::COMM_WORLD.Gather( Magnitude[start_idx[rank] + i], Num_obs, MPI::DOUBLE, 
+                              Magnitude[start_idx[rank] + i], Num_obs, MPI::DOUBLE, 0);
+      }
+
     }
+
 
     if( rank == 0 ){
       ofs << time_1 - time_0 << std::endl;
