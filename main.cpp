@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
+#include <string>
 #include <mpi.h>
 
 #include "fdtd3d.h"
@@ -89,6 +90,20 @@ int main( int argc, char** argv ){
 
     std::cout << " calculation is completed. " << std::endl;
 
+    if( rank == 0 ){
+      std::ofstream ofs_test;
+
+      for(int n = 0; n < Num_Individual; n++ ){
+        std::string fn = "./result/proc1_mag" + std::to_string(n) + ".dat";
+        ofs_test(fn);
+        std::ofstream ofs_test(fn.c_str());
+        
+        for(int i = 0; i < Num_obs; i++ ){
+          ofs_test << i << Magnitude[n][i] << std::endl;
+        }
+      }
+    }
+
     /* 全プロセッサと結果の共有 */
 
     /*if( rank != 0 ){
@@ -102,13 +117,12 @@ int main( int argc, char** argv ){
       }
     }*/
 
-    if( rank != 0 ){
+    /*if( rank != 0 ){
       for( int i = 0; i < assigned_num; i++ ){
         MPI::COMM_WORLD.Gather( Magnitude[start_idx[rank] + i], Num_obs, MPI::DOUBLE, 
                               Magnitude[start_idx[rank] + i], Num_obs, MPI::DOUBLE, 0);
       }
-
-    }
+    }*/
 
 
     if( rank == 0 ){
